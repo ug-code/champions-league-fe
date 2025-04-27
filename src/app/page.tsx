@@ -11,16 +11,41 @@ import {
 } from "../utils/api";
 import { FaPlus, FaSync, FaPlay, FaRedo, FaTable } from "react-icons/fa";
 
+interface Team {
+  name: string;
+  power: number;
+}
+
+interface Match {
+  home: Team;
+  away: Team;
+  played: boolean;
+  homeGoals?: number;
+  awayGoals?: number;
+}
+
+interface Standing {
+  name: string;
+  played: number;
+  won: number;
+  drawn: number;
+  lost: number;
+  goalsFor: number;
+  goalsAgainst: number;
+  goalDifference: number;
+  points: number;
+}
+
 export default function Home() {
-  const [teams, setTeams] = useState<any[]>([]);
+  const [teams, setTeams] = useState<Team[]>([]);
   const [teamName, setTeamName] = useState("");
   const [teamPower, setTeamPower] = useState(50);
-  const [fixtures, setFixtures] = useState<any[][]>([]);
-  const [standings, setStandings] = useState<any[]>([]);
+  const [fixtures, setFixtures] = useState<Match[][]>([]);
+  const [standings, setStandings] = useState<Standing[]>([]);
   const [predictions, setPredictions] = useState<number[]>([]);
   const [currentWeek, setCurrentWeek] = useState(0);
   const [loading, setLoading] = useState(false);
-  const [weekResults, setWeekResults] = useState<any[]>([]);
+  const [weekResults, setWeekResults] = useState<Match[]>([]);
 
   // Takımları getir
   const fetchTeams = async () => {
@@ -46,7 +71,7 @@ export default function Home() {
   };
 
   // Takım ekle
-  const handleAddTeam = async (e: any) => {
+  const handleAddTeam = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     if (!teamName || !teamPower) return;
     setLoading(true);
@@ -80,7 +105,7 @@ export default function Home() {
     let lastPlayedWeek = -1;
     if (res.fixtures) {
       for (let i = res.fixtures.length - 1; i >= 0; i--) {
-        if (res.fixtures[i].some((m: any) => m.played)) {
+        if (res.fixtures[i].some((m: Match) => m.played)) {
           lastPlayedWeek = i;
           break;
         }
@@ -188,7 +213,7 @@ export default function Home() {
                 className="border rounded-xl shadow p-4 bg-gradient-to-br from-blue-100 to-white"
               >
                 <div className="font-bold text-blue-600 mb-2">Hafta {i + 1}</div>
-                {week.map((m: any, j: number) => (
+                {week.map((m: Match, j: number) => (
                   <div key={j} className="mb-1">
                     <span className="font-semibold text-blue-900">{m.home.name}</span>
                     <span className="mx-1 text-gray-500">-</span>
@@ -266,7 +291,7 @@ export default function Home() {
             <h2 className="font-bold text-lg mb-2 text-blue-700">{currentWeek}. Hafta Sonuçları</h2>
             {weekResults.length > 0 ? (
               <ul className="space-y-2">
-                {weekResults.map((m: any, i: number) => (
+                {weekResults.map((m: Match, i: number) => (
                   <li key={i} className="flex items-center gap-2">
                     <span className="font-semibold text-blue-900">{m.home.name}</span>
                     <span className="bg-blue-200 rounded px-2 py-0.5 font-bold">
