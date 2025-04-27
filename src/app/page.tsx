@@ -58,6 +58,11 @@ export default function Home() {
   const [currentWeek, setCurrentWeek] = useState(1);
   const [loading, setLoading] = useState(false);
   const [weekResults, setWeekResults] = useState<Match[]>([]);
+  const [loadingAddTeam, setLoadingAddTeam] = useState(false);
+  const [loadingFixtures, setLoadingFixtures] = useState(false);
+  const [loadingReset, setLoadingReset] = useState(false);
+  const [loadingSimulateWeek, setLoadingSimulateWeek] = useState(false);
+  const [loadingSimulateAll, setLoadingSimulateAll] = useState(false);
 
   // Takımları getir
   const fetchTeams = async () => {
@@ -67,12 +72,14 @@ export default function Home() {
 
   // Fikstürü getir
   const fetchFixtures = async () => {
-    setLoading(true);
+    setLoadingFixtures(true);
     const data = await generateFixtures();
     setFixtures(data.fixtures || []);
     setCurrentWeek(1);
     setWeekResults([]);
-    setLoading(false);
+    setStandings([]);
+    setPredictions([]);
+    setLoadingFixtures(false);
   };
 
   // Lig tablosunu getir
@@ -87,17 +94,17 @@ export default function Home() {
     e.preventDefault();
     if (teams.length >= 4) return;
     if (!teamName || teamPower < 0 || teamPower > 100) return;
-    setLoading(true);
+    setLoadingAddTeam(true);
     await addTeam(teamName, teamPower);
     setTeamName("");
     setTeamPower(50);
     await fetchTeams();
-    setLoading(false);
+    setLoadingAddTeam(false);
   };
 
   // Haftayı simüle et
   const handleSimulateWeek = async () => {
-    setLoading(true);
+    setLoadingSimulateWeek(true);
     const res = await simulateWeek(currentWeek);
     setFixtures(res.fixtures || []);
     if (res.fixtures && res.fixtures[currentWeek - 1]) {
@@ -107,12 +114,12 @@ export default function Home() {
     }
     await fetchStandings();
     setCurrentWeek((w) => w + 1);
-    setLoading(false);
+    setLoadingSimulateWeek(false);
   };
 
   // Tüm ligi simüle et
   const handleSimulateAll = async () => {
-    setLoading(true);
+    setLoadingSimulateAll(true);
     const res = await simulateAll();
     setFixtures(res.fixtures || []);
     let lastPlayedWeek = -1;
@@ -132,12 +139,12 @@ export default function Home() {
       setCurrentWeek(1);
     }
     await fetchStandings();
-    setLoading(false);
+    setLoadingSimulateAll(false);
   };
 
   // Reset
   const handleReset = async () => {
-    setLoading(true);
+    setLoadingReset(true);
     await resetLeague();
     setTeams([]);
     setFixtures([]);
@@ -145,7 +152,7 @@ export default function Home() {
     setPredictions([]);
     setCurrentWeek(1);
     setWeekResults([]);
-    setLoading(false);
+    setLoadingReset(false);
   };
 
   useEffect(() => {
@@ -189,10 +196,10 @@ export default function Home() {
           />
           <button
             type="submit"
-            className="flex items-center gap-2 bg-[#3a4270] hover:bg-[#4b5a8a] text-white px-4 py-2 rounded-xl shadow transition font-bold"
-            disabled={teams.length >= 4}
+            className="flex items-center gap-2 bg-[#3a4270] hover:bg-[#4b5a8a] active:bg-[#2e3657] active:scale-95 text-white px-4 py-2 rounded-xl shadow transition font-bold cursor-pointer"
+            disabled={teams.length >= 4 || loadingAddTeam}
           >
-            <FaPlus /> Takım Ekle
+            {loadingAddTeam ? <div className="animate-spin h-5 w-5 border-2 border-white border-t-transparent rounded-full"></div> : <FaPlus />} Takım Ekle
           </button>
         </form>
         {/* Takım listesi */}
@@ -212,18 +219,18 @@ export default function Home() {
         {/* Fikstür oluştur ve reset */}
         <div className="flex flex-wrap gap-4 mb-6">
           <button
-            className="flex items-center gap-2 bg-[#3a4270] hover:bg-[#4b5a8a] text-white px-4 py-2 rounded-xl shadow transition font-bold"
+            className="flex items-center gap-2 bg-[#3a4270] hover:bg-[#4b5a8a] active:bg-[#2e3657] active:scale-95 text-white px-4 py-2 rounded-xl shadow transition font-bold cursor-pointer"
             onClick={fetchFixtures}
-            disabled={teams.length < 2 || loading}
+            disabled={teams.length < 2 || loadingFixtures}
           >
-            <FaSync /> Fikstür Oluştur
+            {loadingFixtures ? <div className="animate-spin h-5 w-5 border-2 border-white border-t-transparent rounded-full"></div> : <FaSync />} Fikstür Oluştur
           </button>
           <button
-            className="flex items-center gap-2 bg-[#6b2236] hover:bg-[#a23a47] text-white px-4 py-2 rounded-xl shadow transition font-bold"
+            className="flex items-center gap-2 bg-[#6b2236] hover:bg-[#a23a47] active:bg-[#4b1a2a] active:scale-95 text-white px-4 py-2 rounded-xl shadow transition font-bold cursor-pointer"
             onClick={handleReset}
-            disabled={loading}
+            disabled={loadingReset}
           >
-            <FaRedo /> Resetle
+            {loadingReset ? <div className="animate-spin h-5 w-5 border-2 border-white border-t-transparent rounded-full"></div> : <FaRedo />} Resetle
           </button>
         </div>
         {/* Fikstür */}
@@ -258,18 +265,18 @@ export default function Home() {
         {fixtures.length > 0 && (
           <div className="flex flex-wrap gap-4 mb-8">
             <button
-              className="flex items-center gap-2 bg-[#2e3657] hover:bg-[#3a4270] text-white px-4 py-2 rounded-xl shadow transition font-bold"
+              className="flex items-center gap-2 bg-[#2e3657] hover:bg-[#3a4270] active:bg-[#232b47] active:scale-95 text-white px-4 py-2 rounded-xl shadow transition font-bold cursor-pointer"
               onClick={handleSimulateWeek}
-              disabled={currentWeek > fixtures.length || loading}
+              disabled={currentWeek > fixtures.length || loadingSimulateWeek}
             >
-              <FaPlay /> Haftayı Oynat
+              {loadingSimulateWeek ? <div className="animate-spin h-5 w-5 border-2 border-white border-t-transparent rounded-full"></div> : <FaPlay />} Haftayı Oynat
             </button>
             <button
-              className="flex items-center gap-2 bg-[#2e3657] hover:bg-[#3a4270] text-white px-4 py-2 rounded-xl shadow transition font-bold"
+              className="flex items-center gap-2 bg-[#2e3657] hover:bg-[#3a4270] active:bg-[#232b47] active:scale-95 text-white px-4 py-2 rounded-xl shadow transition font-bold cursor-pointer"
               onClick={handleSimulateAll}
-              disabled={loading}
+              disabled={loadingSimulateAll}
             >
-              <FaPlay /> Tüm Ligi Oynat
+              {loadingSimulateAll ? <div className="animate-spin h-5 w-5 border-2 border-white border-t-transparent rounded-full"></div> : <FaPlay />} Tüm Ligi Oynat
             </button>
           </div>
         )}
@@ -279,71 +286,89 @@ export default function Home() {
             {/* Lig Tablosu */}
             <div className="bg-[#232b47] rounded-2xl shadow-xl p-4 border border-[#3a4270]">
               <h2 className="font-bold text-lg mb-2 text-blue-100">Lig Tablosu</h2>
-              <table className="w-full border border-[#3a4270] text-sm rounded-xl overflow-hidden">
-                <thead>
-                  <tr className="bg-[#2e3657] text-blue-100">
-                    <th className="p-1">Takım</th>
-                    <th className="p-1">O</th>
-                    <th className="p-1">G</th>
-                    <th className="p-1">B</th>
-                    <th className="p-1">M</th>
-                    <th className="p-1">A</th>
-                    <th className="p-1">Y</th>
-                    <th className="p-1">AV</th>
-                    <th className="p-1">P</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {standings.map((t, i) => (
-                    <tr key={i} className="text-center hover:bg-[#2e3657] transition text-blue-100">
-                      <td className="font-semibold">{t.name}</td>
-                      <td>{t.played}</td>
-                      <td>{t.won}</td>
-                      <td>{t.drawn}</td>
-                      <td>{t.lost}</td>
-                      <td>{t.goalsFor}</td>
-                      <td>{t.goalsAgainst}</td>
-                      <td>{t.goalsFor - t.goalsAgainst}</td>
-                      <td className="font-bold text-blue-400">{t.points}</td>
+              {loading ? (
+                <div className="flex justify-center items-center h-32">
+                  <div className="animate-spin h-8 w-8 border-4 border-blue-400 border-t-transparent rounded-full"></div>
+                </div>
+              ) : (
+                <table className="w-full border border-[#3a4270] text-sm rounded-xl overflow-hidden">
+                  <thead>
+                    <tr className="bg-[#2e3657] text-blue-100">
+                      <th className="p-1">Takım</th>
+                      <th className="p-1">O</th>
+                      <th className="p-1">G</th>
+                      <th className="p-1">B</th>
+                      <th className="p-1">M</th>
+                      <th className="p-1">A</th>
+                      <th className="p-1">Y</th>
+                      <th className="p-1">AV</th>
+                      <th className="p-1">P</th>
                     </tr>
-                  ))}
-                </tbody>
-              </table>
+                  </thead>
+                  <tbody>
+                    {standings.map((t, i) => (
+                      <tr key={i} className="text-center hover:bg-[#2e3657] transition text-blue-100">
+                        <td className="font-semibold">{t.name}</td>
+                        <td>{t.played}</td>
+                        <td>{t.won}</td>
+                        <td>{t.drawn}</td>
+                        <td>{t.lost}</td>
+                        <td>{t.goalsFor}</td>
+                        <td>{t.goalsAgainst}</td>
+                        <td>{t.goalsFor - t.goalsAgainst}</td>
+                        <td className="font-bold text-blue-400">{t.points}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              )}
             </div>
             {/* Haftanın Maç Sonuçları */}
             <div className="bg-[#232b47] rounded-2xl shadow-xl p-4 border border-[#3a4270]">
               <h2 className="font-bold text-lg mb-2 text-blue-100">{currentWeek}. Hafta Sonuçları</h2>
-              {weekResults.length > 0 ? (
-                <ul className="space-y-2">
-                  {weekResults.map((m: Match, i: number) => (
-                    <li key={i} className="flex items-center gap-2 text-blue-100">
-                      <span className="font-semibold">{m.home.name}</span>
-                      <span className="bg-blue-900 rounded px-2 py-0.5 font-bold text-blue-100">
-                        {m.homeGoals}
-                      </span>
-                      <span className="text-blue-300">-</span>
-                      <span className="bg-blue-900 rounded px-2 py-0.5 font-bold text-blue-100">
-                        {m.awayGoals}
-                      </span>
-                      <span className="font-semibold">{m.away.name}</span>
-                    </li>
-                  ))}
-                </ul>
+              {loading ? (
+                <div className="flex justify-center items-center h-32">
+                  <div className="animate-spin h-8 w-8 border-4 border-blue-400 border-t-transparent rounded-full"></div>
+                </div>
               ) : (
-                <div className="text-blue-300">Henüz oynanmadı.</div>
+                weekResults.length > 0 ? (
+                  <ul className="space-y-2">
+                    {weekResults.map((m: Match, i: number) => (
+                      <li key={i} className="flex items-center gap-2 text-blue-100">
+                        <span className="font-semibold">{m.home.name}</span>
+                        <span className="bg-blue-900 rounded px-2 py-0.5 font-bold text-blue-100">
+                          {m.homeGoals}
+                        </span>
+                        <span className="text-blue-300">-</span>
+                        <span className="bg-blue-900 rounded px-2 py-0.5 font-bold text-blue-100">
+                          {m.awayGoals}
+                        </span>
+                        <span className="font-semibold">{m.away.name}</span>
+                      </li>
+                    ))}
+                  </ul>
+                ) : (
+                  <div className="text-blue-300">Henüz oynanmadı.</div>
+                )
               )}
             </div>
             {/* Şampiyonluk Tahminleri */}
             <div className="bg-[#232b47] rounded-2xl shadow-xl p-4 border border-[#3a4270]">
               <h2 className="font-bold text-lg mb-2 text-blue-100">Şampiyonluk Tahmini (%)</h2>
-              <ul className="space-y-1">
-                {standings.map((t, i) => (
-                  <li key={i} className="flex justify-between text-blue-100">
-                    <span className="font-semibold">{t.name}</span>
-                    <span className="font-bold text-blue-400">%{predictions[i] ?? 0}</span>
-                  </li>
-                ))}
-              </ul>
+              {loading ? (
+                <div className="flex justify-center items-center h-32">
+                  <div className="animate-spin h-8 w-8 border-4 border-blue-400 border-t-transparent rounded-full"></div>
+                </div>
+              ) : (
+                <ul className="space-y-1">
+                  {standings.map((t, i) => (
+                    <li key={i} className="flex justify-between text-blue-100">
+                      <span className="font-semibold">{t.name}</span>
+                      <span className="font-bold text-blue-400">%{predictions[i] ?? 0}</span>
+                    </li>
+                  ))}
+                </ul>
+              )}
             </div>
           </div>
         )}
