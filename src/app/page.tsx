@@ -14,14 +14,26 @@ import { FaPlus, FaSync, FaPlay, FaRedo, FaTable } from "react-icons/fa";
 interface Team {
   name: string;
   power: number;
+  points?: number;
+  played?: number;
+  won?: number;
+  drawn?: number;
+  lost?: number;
+  goalsFor?: number;
+  goalsAgainst?: number;
 }
 
 interface Match {
   home: Team;
   away: Team;
   played: boolean;
-  homeGoals?: number;
-  awayGoals?: number;
+  homeGoals: number | null;
+  awayGoals: number | null;
+}
+
+interface WeekFixture {
+  week: number;
+  matches: Match[];
 }
 
 interface Standing {
@@ -40,7 +52,7 @@ export default function Home() {
   const [teams, setTeams] = useState<Team[]>([]);
   const [teamName, setTeamName] = useState("");
   const [teamPower, setTeamPower] = useState(50);
-  const [fixtures, setFixtures] = useState<Match[][]>([]);
+  const [fixtures, setFixtures] = useState<WeekFixture[]>([]);
   const [standings, setStandings] = useState<Standing[]>([]);
   const [predictions, setPredictions] = useState<number[]>([]);
   const [currentWeek, setCurrentWeek] = useState(1);
@@ -88,8 +100,8 @@ export default function Home() {
     setLoading(true);
     const res = await simulateWeek(currentWeek);
     setFixtures(res.fixtures || []);
-    if (res.fixtures && res.fixtures[currentWeek]) {
-      setWeekResults(res.fixtures[currentWeek]);
+    if (res.fixtures && res.fixtures[currentWeek - 1]) {
+      setWeekResults(res.fixtures[currentWeek - 1].matches);
     } else {
       setWeekResults([]);
     }
@@ -106,14 +118,14 @@ export default function Home() {
     let lastPlayedWeek = -1;
     if (res.fixtures) {
       for (let i = res.fixtures.length - 1; i >= 0; i--) {
-        if (res.fixtures[i].some((m: Match) => m.played)) {
+        if (res.fixtures[i].matches.some((m: Match) => m.played)) {
           lastPlayedWeek = i;
           break;
         }
       }
     }
     if (lastPlayedWeek >= 0) {
-      setWeekResults(res.fixtures[lastPlayedWeek]);
+      setWeekResults(res.fixtures[lastPlayedWeek].matches);
       setCurrentWeek(lastPlayedWeek + 1);
     } else {
       setWeekResults([]);
@@ -219,13 +231,13 @@ export default function Home() {
           <div className="mb-8">
             <h2 className="font-bold text-lg mb-2 text-blue-100">Fikstür</h2>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              {fixtures.map((week, i) => (
+              {fixtures.map((week: WeekFixture) => (
                 <div
-                  key={i}
+                  key={week.week}
                   className="border border-[#3a4270] rounded-2xl shadow-xl p-4 bg-gradient-to-br from-[#232b47] to-[#2e3657]"
                 >
-                  <div className="font-bold text-blue-400 mb-2">Hafta {i + 1}</div>
-                  {week.map((m: Match, j: number) => (
+                  <div className="font-bold text-blue-400 mb-2">Hafta {week.week}</div>
+                  {week.matches.map((m: Match, j: number) => (
                     <div key={j} className="mb-1 text-blue-100">
                       <span className="font-semibold">{m.home.name}</span>
                       <span className="mx-1 text-blue-300">-</span>
