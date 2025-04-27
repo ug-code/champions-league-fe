@@ -43,7 +43,7 @@ export default function Home() {
   const [fixtures, setFixtures] = useState<Match[][]>([]);
   const [standings, setStandings] = useState<Standing[]>([]);
   const [predictions, setPredictions] = useState<number[]>([]);
-  const [currentWeek, setCurrentWeek] = useState(0);
+  const [currentWeek, setCurrentWeek] = useState(1);
   const [loading, setLoading] = useState(false);
   const [weekResults, setWeekResults] = useState<Match[]>([]);
 
@@ -58,7 +58,7 @@ export default function Home() {
     setLoading(true);
     const data = await generateFixtures();
     setFixtures(data.fixtures || []);
-    setCurrentWeek(0);
+    setCurrentWeek(1);
     setWeekResults([]);
     setLoading(false);
   };
@@ -117,7 +117,7 @@ export default function Home() {
       setCurrentWeek(lastPlayedWeek + 1);
     } else {
       setWeekResults([]);
-      setCurrentWeek(0);
+      setCurrentWeek(1);
     }
     await fetchStandings();
     setLoading(false);
@@ -131,7 +131,7 @@ export default function Home() {
     setFixtures([]);
     setStandings([]);
     setPredictions([]);
-    setCurrentWeek(0);
+    setCurrentWeek(1);
     setWeekResults([]);
     setLoading(false);
   };
@@ -248,7 +248,7 @@ export default function Home() {
             <button
               className="flex items-center gap-2 bg-[#2e3657] hover:bg-[#3a4270] text-white px-4 py-2 rounded-xl shadow transition font-bold"
               onClick={handleSimulateWeek}
-              disabled={currentWeek >= fixtures.length || loading}
+              disabled={currentWeek > fixtures.length || loading}
             >
               <FaPlay /> Haftayı Oynat
             </button>
