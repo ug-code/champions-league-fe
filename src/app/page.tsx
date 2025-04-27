@@ -73,7 +73,8 @@ export default function Home() {
   // Takım ekle
   const handleAddTeam = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    if (!teamName || !teamPower) return;
+    if (teams.length >= 4) return;
+    if (!teamName || teamPower < 0 || teamPower > 100) return;
     setLoading(true);
     await addTeam(teamName, teamPower);
     setTeamName("");
@@ -145,6 +146,13 @@ export default function Home() {
         <h1 className="text-4xl font-extrabold mb-8 text-blue-100 flex items-center gap-2 drop-shadow">
           <FaTable className="text-blue-400" /> Şampiyonlar Ligi Simülasyonu
         </h1>
+        {/* Takım ekle kuralları */}
+        <div className="mb-2 text-blue-300 text-sm font-semibold">
+          <ul className="list-disc list-inside">
+            <li>Maksimum takım sayısı: 4</li>
+            <li>Takım gücü 0 ile 100 arasında olmalıdır</li>
+          </ul>
+        </div>
         {/* Takım ekle */}
         <form
           onSubmit={handleAddTeam}
@@ -156,18 +164,21 @@ export default function Home() {
             value={teamName}
             onChange={(e) => setTeamName(e.target.value)}
             className="border border-[#3a4270] bg-[#1a2236] text-blue-100 px-3 py-2 rounded focus:outline-blue-400 w-48 placeholder:text-blue-300"
+            disabled={teams.length >= 4}
           />
           <input
             type="number"
-            min={1}
+            min={0}
             max={100}
             value={teamPower}
             onChange={(e) => setTeamPower(Number(e.target.value))}
             className="border border-[#3a4270] bg-[#1a2236] text-blue-100 px-3 py-2 rounded w-32 focus:outline-blue-400 placeholder:text-blue-300"
+            disabled={teams.length >= 4}
           />
           <button
             type="submit"
             className="flex items-center gap-2 bg-[#3a4270] hover:bg-[#4b5a8a] text-white px-4 py-2 rounded-xl shadow transition font-bold"
+            disabled={teams.length >= 4}
           >
             <FaPlus /> Takım Ekle
           </button>
