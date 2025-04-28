@@ -56,7 +56,7 @@ export default function Home() {
   const [standings, setStandings] = useState<Standing[]>([]);
   const [predictions, setPredictions] = useState<number[]>([]);
   const [currentWeek, setCurrentWeek] = useState(1);
-  const [loading, setLoading] = useState(false);
+  const [loading] = useState(false);
   const [weekResults, setWeekResults] = useState<Match[]>([]);
   const [loadingAddTeam, setLoadingAddTeam] = useState(false);
   const [loadingFixtures, setLoadingFixtures] = useState(false);
