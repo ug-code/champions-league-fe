@@ -2,6 +2,9 @@
 
 Bu proje, Şampiyonlar Ligi simülasyonunun frontend kısmını içerir. Next.js ile geliştirilmiş modern bir web uygulamasıdır.
 
+Demo link: https://champions-league-fe.vercel.app/
+
+
 ## 🚀 Kullanılan Teknolojiler
 
 - **Next.js 14** - React framework
